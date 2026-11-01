@@ -1,0 +1,13 @@
+BojoCamReject v3.2 — one-click Windows starter
+
+1. Double-click START_BOJOCAMREJECT.bat inside this folder.
+2. The desktop page opens at a local 127.0.0.1 address.
+3. If a VERIFIED PUBLIC WEBSITE ADDRESS appears, use it on the phone.
+4. Keep the command window open while using the phone camera.
+5. The public trycloudflare.com link is TEMPORARY and changes when restarted.
+
+The site files match the v3.2 GitHub publishing package, but this local launcher does NOT give you a permanent address or update the already installed phone app automatically. For that, publish to the same permanent HTTPS host for every update.
+
+Camera and face recognition require permission and an HTTPS page on the phone. Some devices/networks may not support all features.
+
+Only use where you have permission to record people.
