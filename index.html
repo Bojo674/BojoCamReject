@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090e1c">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta name="description" content="BojoCamReject: инсталирай на Android или iPhone и виж камерата на компютър чрез WebRTC.">
+  <title>BojoCamReject v3.2 — автоматични обновления</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BojoCamReject">
+  <link rel="stylesheet" href="style.css?v=3.2.0">
+  <link rel="stylesheet" href="recognition.css?v=3.2.0">
+  <script defer src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script defer src="app.js?v=3.2.0"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script defer src="scanner.js?v=3.2.0"></script>
+  <script defer src="install.js?v=3.2.0"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script defer src="recognition.js?v=3.2.0"></script>
+</head>
+<body>
+  <div class="background-glow glow-a"></div><div class="background-glow glow-b"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="./" class="brand" aria-label="BojoCamReject — начало"><span class="brand-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><rect x="3" y="5" width="14" height="14" rx="3"/><path d="m17 10 4-3v10l-4-3"/><circle cx="10" cy="12" r="3"/></svg></span><span>Bojo<span class="brand-accent">CamReject</span></span></a>
+      <span class="header-meta"><span class="green-dot"></span> v3.2 · АВТОМАТИЧНИ ОБНОВЛЕНИЯ</span>
+    </header>
+
+    <main>
+      <div class="intro">
+        <span class="eyebrow"><span class="sparkle">✦</span> МОЖЕШ ДА ГО ИНСТАЛИРАШ</span>
+        <h1>Телефонът ти.<br><span class="gradient-text">Камера на компютъра.</span></h1>
+        <p>Виж камерата на телефона си на живо от компютъра — само с линк или QR код.</p>
+      </div>
+
+      <section class="install-panel" id="installPanel" aria-label="Инсталиране на BojoCamReject">
+        <div><strong>📲 BojoCamReject на телефона</strong><span>Инсталирай иконата на началния екран — без магазин за приложения.</span></div>
+        <button type="button" id="installAppBtn" class="install-button">Инсталирай приложението</button>
+        <div id="installHelp" class="install-help hidden" role="status" aria-live="polite"></div>
+      </section>
+      <div class="update-check-row"><button type="button" id="checkUpdatesBtn" class="check-update-button">↻ Провери за ъпдейт</button></div>
+      <div id="updateBanner" class="update-banner hidden" role="status" aria-live="polite">
+        <div><strong>✨ Нова версия е готова</strong><span>Версията се зарежда сама, когато камерата не предава. При активно видео можеш да избереш кога да обновиш.</span></div>
+        <button id="applyUpdateBtn" type="button" class="install-button">Обнови сега</button>
+      </div>
+      <nav class="mode-tabs" aria-label="Избери устройство">
+        <button type="button" class="mode-tab active" id="viewerTab" data-mode="viewer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 22h8m-4-4v4"/></svg> Аз съм на компютър</button>
+        <button type="button" class="mode-tab" id="phoneTab" data-mode="phone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg> Аз съм на телефон</button>
+      </nav>
+
+      <section id="viewerMode" class="workspace" aria-label="Гледане от компютър">
+        <div class="preview-card">
+          <div class="card-bar"><div class="card-heading"><span class="live-indicator"></span> ПРЕГЛЕД НА ЖИВО</div><span id="viewerQuality" class="quality-chip">HD · 720p</span></div>
+          <div class="video-stage" id="viewerStage">
+            <video id="remoteVideo" autoplay playsinline muted></video>
+            <canvas id="recognitionOverlay" class="ai-video-overlay" aria-hidden="true"></canvas>
+            <div id="viewerEmpty" class="video-empty"><div class="large-icon"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="10" y="14" width="34" height="36" rx="7"/><path d="m44 27 12-9v28l-12-9"/><circle cx="27" cy="32" r="10"/><path d="M24 32h6m-3-3v6"/></svg></div><strong>Камерата ще се появи тук</strong><span>Създай връзка и включи камерата от телефона</span></div>
+            <div id="viewerLiveBadge" class="live-badge hidden"><span></span> LIVE</div>
+          </div>
+          <div class="viewer-controls"><div class="status-line"><span id="viewerDot" class="status-dot"></span><span id="viewerStatus" role="status" aria-live="polite">Готово за създаване на връзка</span></div><div class="control-actions"><button id="snapshotBtn" class="small-btn" title="Запази снимка" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 4h-4l-2 3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-4z"/><circle cx="12" cy="13" r="4"/></svg><span>Снимка</span></button><button id="fullscreenBtn" class="small-btn" title="На цял екран" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg><span>Цял екран</span></button></div></div>
+        </div>
+
+        <aside class="connect-card"><div class="step-header"><span class="step-num">01</span><span>СВЪРЗВАНЕ</span></div><h2>Свържи телефона</h2><p>Отвори камерата на телефона и гледай видеото тук.</p>
+          <div id="viewerBefore"><div class="howto"><div><span class="howto-num">1</span> Натисни „Създай връзка“.</div><div><span class="howto-num">2</span> Сканирай QR кода с телефона.</div><div><span class="howto-num">3</span> Разреши достъп до камерата.</div></div><button id="createViewerBtn" class="primary-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-7-7 7 7-7 7"/></svg> Създай връзка</button></div>
+          <div id="viewerPair" class="hidden"><div class="qr-panel"><div id="qrCode" aria-label="QR код за свързване от телефона"></div></div><div class="qr-caption">Сканирай кода с камерата на телефона</div><div class="input-label">ТВОЯТ КОД ЗА СВЪРЗВАНЕ</div><div class="pair-code"><span id="roomCode">—</span><button id="copyCodeBtn" class="icon-btn" title="Копирай код" aria-label="Копирай код"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div><button id="copyLinkBtn" class="secondary-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7 .5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg> Копирай линка за телефона</button><button id="endViewerBtn" class="ghost-btn">Прекрати тази връзка</button></div>
+        </aside>
+      </section>
+
+
+      <section id="recognitionViewerPanel" class="ai-main-panel" aria-label="AI разпознаване на лица">
+        <div class="ai-panel-top">
+          <div><span class="ai-kicker">✦ BOJOCAMREJECT AI V3.2</span><h2>Интелигентно наблюдение</h2><p>При движение заснема всяко отделно открито лице и показва резултата на компютъра. Повторни снимки на същото лице се ограничават, за да няма стотици дублирани кадри.</p></div>
+          <span id="aiReadyBadge" class="ai-state-badge">AI ИЗКЛЮЧЕН</span>
+        </div>
+        <div class="ai-feature-grid">
+          <div class="ai-feature-card">
+            <h3>⌖ Автоматично заснемане: ВСИЧКИ ЛИЦА</h3><p class="ai-capture-policy">✓ Заснемай познати и непознати лица. Снимките са достъпни единствено в браузъра на този компютър — не се изпращат към телефона.</p>
+            <p id="aiStatus" role="status" aria-live="polite">Включи AI наблюдение, след като се свържеш с телефона.</p>
+            <div class="ai-motion-row"><span>Чувствителност</span><input type="range" min="3" max="35" value="8" step="1" id="sensitivitySlider"><strong id="motionLevel">—</strong></div>
+            <div class="ai-meter"><div id="motionMeterFill"></div></div>
+            <button class="ai-big-btn" id="toggleRecognitionBtn" type="button">▶ Включи AI наблюдение</button>
+            <label class="ai-toggle-label"><input type="checkbox" id="aiNotifyToggle"> Показвай известие на компютъра, когато е разрешено</label>
+            <p class="ai-hint">Обработката е локална на компютъра. Камерата и интернет връзката трябва да са активни.</p>
+          </div>
+          <div class="ai-feature-card">
+            <h3>▣ Библиотека с познати лица</h3>
+            <p>Добавяй снимки само на хора, които са съгласни. Сравнението показва вероятно съвпадение.</p>
+            <label for="aiNameViewer">Име на лицето</label><input id="aiNameViewer" maxlength="80" placeholder="Напр. Иван">
+            <label for="aiFileViewer">Снимка на лицето</label><input id="aiFileViewer" type="file" accept="image/*">
+            <button class="ai-secondary-btn" id="aiAddViewer" type="button">＋ Добави лице</button>
+            <div id="aiFacesCount" class="ai-muted">0 лица в библиотеката</div>
+            <div class="ai-backup-row"><button id="exportFacesViewer" type="button">↓ Запази библиотеката</button><button id="importFacesViewer" type="button">↑ Зареди архив</button><input id="importFaceFileViewer" type="file" class="hidden" accept=".json,application/json"></div>
+            <div id="aiFacesViewer" class="ai-faces"></div>
+          </div>
+        </div>
+        <div class="ai-history-head"><h3>▥ Снимки — само на този компютър</h3><div><span id="aiEventsCount">0 записа</span><button id="aiClearEvents" type="button">Изтрий записите</button></div></div>
+        <div id="aiEvents" class="ai-event-list">Все още няма засичания.</div>
+        <p class="ai-disclaimer">⚠️ Възрастта и видимото изражение са приблизителни, не доказват реални емоции или самоличност. „Отчаяние“ не може надеждно да се определи по лице. Снимките на засечените лица остават само в локалната база на браузъра на компютъра и не се изпращат към телефона. Изтриването на данните на браузъра ще изтрие историята. Не са криптирани на диска. Записвай само там, където е законно и хората са уведомени.</p>
+      </section>
+
+      <section id="phoneMode" class="phone-workspace hidden" aria-label="Камера на телефона">
+        <div class="preview-card phone-camera-card"><div class="card-bar"><div class="card-heading"><span class="live-indicator"></span> КАМЕРА НА ТЕЛЕФОНА</div><span class="quality-chip">Без звук</span></div><div class="video-stage phone-video-stage"><video id="localVideo" autoplay muted playsinline></video><div id="phoneEmpty" class="video-empty"><div class="large-icon"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="18" y="5" width="28" height="54" rx="6"/><circle cx="32" cy="31" r="9"/><path d="M28 51h8"/></svg></div><strong>Камерата е изключена</strong><span>Въведи кода и натисни „Включи камерата“</span></div><div id="phoneLiveBadge" class="live-badge hidden"><span></span> ИЗЛЪЧВАНЕ</div></div><div class="viewer-controls"><div class="status-line"><span class="status-dot" id="phoneDot"></span><span id="phoneStatus" role="status" aria-live="polite">Очаква свързване</span></div></div></div>
+        <aside class="connect-card"><div class="step-header"><span class="step-num">02</span><span>ТВОЯТ ТЕЛЕФОН</span></div><div class="qr-release-badge">✓ ВЕРСИЯ 3.2 — AI + QR</div><h2>Включи камерата</h2><p>Остави приложението отворено с включен екран, докато предаваш към компютъра.</p><label class="input-label" for="phoneRoom">КОД ЗА СВЪРЗВАНЕ</label><input id="phoneRoom" type="text" class="room-input" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Въведи или постави кода"><button type="button" id="scanQrBtn" class="scan-qr-btn" aria-label="Отвори камера за сканиране на QR код"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 8V5a2 2 0 0 1 2-2h3M15 3h3a2 2 0 0 1 2 2v3M20 16v3a2 2 0 0 1-2 2h-3M9 21H6a2 2 0 0 1-2-2v-3"/><rect x="7" y="8" width="10" height="8" rx="2"/><circle cx="12" cy="12" r="2"/></svg><span>📷 СКАНИРАЙ QR КОД</span></button><div class="input-hint">Кодът е показан на екрана на компютъра. Може и да сканираш QR кода.</div><button id="startPhoneBtn" class="primary-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="14" height="14" rx="3"/><path d="m17 10 4-3v10l-4-3"/></svg> Включи камерата</button><button id="stopPhoneBtn" class="danger-btn hidden">Спри камерата</button><div id="phoneTools" class="phone-tools hidden"><div class="tools-title">НАСТРОЙКИ НА КАМЕРАТА</div><div class="tool-grid"><button id="switchCameraBtn" class="tool-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10V6l4-3m12 11v4l-4 3M4 6h10a6 6 0 0 1 6 6m0 6H10a6 6 0 0 1-6-6"/><path d="M8 3 4 6l4 3m8 12 4-3-4-3"/></svg><span>Обърни</span></button><button id="torchBtn" class="tool-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8l-1 7-3 3-3-3-1-7ZM10 13h4v8h-4zM9 17h6"/></svg><span>Светкавица</span></button></div><label for="qualitySelect" class="input-label">КАЧЕСТВО НА ВИДЕОТО</label><select id="qualitySelect" class="quality-select"><option value="hd">HD · 720p (препоръчително)</option><option value="fullhd">Full HD · 1080p</option><option value="sd">Икономично · 480p</option></select></div><div class="phone-warning">⚠️ При заключен екран камерата обикновено спира, особено на iPhone. Ако имаш нужда от непрекъсната картина, остави екрана включен.</div><div class="privacy-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg><span>Камерата се включва само след твоето разрешение. Не се записва видео на сайта.</span></div></aside>
+      
+        <section class="ai-feature-card ai-phone-library" aria-label="Библиотека лица от телефона">
+          <span class="ai-kicker">BOJOCAMREJECT AI</span><h3>▣ Добави лице от телефона</h3>
+          <p>Избери снимка и име. Когато си свързан с компютъра, записът ще се синхронизира чрез защитената връзка.</p>
+          <label for="aiNamePhone">Име</label><input id="aiNamePhone" placeholder="Напр. Иван" maxlength="80">
+          <label for="aiFilePhone">Избери снимка</label><input id="aiFilePhone" type="file" accept="image/*">
+          <button id="aiAddPhone" class="ai-secondary-btn" type="button">＋ Добави лице</button>
+          <div class="ai-backup-row"><button id="exportFacesPhone" type="button">↓ Запази библиотеката</button><button id="importFacesPhone" type="button">↑ Зареди архив</button><input id="importFaceFilePhone" type="file" class="hidden" accept=".json,application/json"></div>
+          <div id="aiFacesPhone" class="ai-faces"></div>
+          <p class="ai-hint">Записите стоят на това устройство и се прехвърлят при активна връзка. Не се пазят в облачна база.</p>
+        </section>
+      </section>
+      <div id="qrScannerDialog" class="qr-dialog hidden" role="dialog" aria-modal="true" aria-labelledby="qrScannerTitle" aria-hidden="true">
+        <div class="qr-scanner-card">
+          <div class="qr-scanner-top"><div><div class="qr-small-label">BOJOCAMREJECT</div><h2 id="qrScannerTitle">Сканирай QR код</h2></div><button id="closeQrScannerBtn" type="button" class="qr-close" aria-label="Затвори QR скенера">✕</button></div>
+          <p>Насочи камерата на телефона към QR кода на екрана на компютъра.</p>
+          <div class="qr-camera-stage"><video id="qrScanVideo" autoplay muted playsinline></video><div class="qr-target"><i></i><i></i><i></i><i></i></div></div>
+          <p id="qrScannerStatus" class="qr-scanner-status" aria-live="polite">Подготвяне на камерата...</p>
+          <label for="qrImageInput" class="qr-image-label">Или избери снимка с QR код</label><input type="file" id="qrImageInput" accept="image/*" class="qr-file-input">
+          <button type="button" id="cancelQrScannerBtn" class="secondary-btn">Отказ</button>
+        </div>
+      </div>
+
+      <div id="aiEventAlert" class="ai-alert-layer hidden" role="dialog" aria-modal="true" aria-labelledby="aiAlertTitle">
+        <div class="ai-alert-window">
+          <div class="ai-alert-top"><div><small>✦ BOJOCAMREJECT · AI FACE SCAN</small><h2 id="aiAlertTitle">ЛИЦЕТО Е ЗАСЕЧЕНО</h2></div><button id="aiAlertClose" aria-label="Затвори" type="button">✕</button></div>
+          <div class="ai-alert-body">
+            <div class="ai-alert-scene"><img id="aiAlertFrame" alt="Кадър от камерата"><div class="ai-alert-corners" aria-hidden="true"><i></i><i></i><i></i><i></i></div><span>SCANNING COMPLETED</span></div>
+            <div class="ai-alert-details"><img id="aiAlertFace" alt="Изрязано лице от засеченото движение"><h3 id="aiAlertName">Непознато лице</h3><div><span>Възраст (прибл.)</span><strong id="aiAlertAge">—</strong></div><div><span>Видимо изражение</span><strong id="aiAlertExpression">—</strong></div><div><span>Засечено</span><strong id="aiAlertWhen">—</strong></div></div>
+          </div><div class="ai-alert-download"><button id="aiDownloadPhoto" type="button">↓ Изтегли снимката на компютъра</button><span>Не се изпраща към телефона.</span></div><p>Това е автоматична приблизителна оценка — възможни са грешки в разпознаването, възрастта и изражението.</p>
+        </div>
+      </div>
+      <canvas width="128" height="72" id="motionCanvas" class="hidden" aria-hidden="true"></canvas>
+      <div id="aiToast" class="ai-toast hidden" role="status"></div>
+
+      <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+    </main>
+
+    <footer class="footer"><div class="footer-left"><span class="foot-badge">🔒</span> WebRTC криптирано видео · връзката може да изисква TURN при някои мрежи</div><div class="footer-right">BOJOCAMREJECT <span>✦</span> <span id="appVersion">v3.1 — AI</span></div></footer>
+  </div>
+</body>
+</html>
